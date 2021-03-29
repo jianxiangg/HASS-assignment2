@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style>
+		h1 { 
+			text-align: center; 
+			color: #2599a1; 
+			font-size: 28px; 
+			font-family: 'Source Sans Pro', sans-serif;
+			margin-bottom: 7px;
+		}
+		
+		h2 {
+			text-align: center; 
+			color: black; 
+			font-size: 20px; 
+			font-family: 'Source Sans Pro', sans-serif;
+			margin-top: 40px;
+		}
+
+		h3 {
+			text-align: center;
+			color: #2599a1;
+			font-family: 'Source Sans Pro', sans-serif;
+			font-style: italic;
+			font-weight: normal;
+			margin-top: 1px;
+			margin-bottom: 1px;
+		}
+		
+		p {
+			text-align: center;
+			font-size: 18px;
+			font-family: 'Source Sans Pro', sans-serif;
+			margin-left: 200px;
+			margin-right: 200px;
+		}
+		
+		.axis-marks {
+			font-size: 12px;
+			font-family: 'Source Sans Pro', sans-serif;
+		}
+		
+		.axis-label {
+			text-anchor: middle;
+			font-size: 14px;
+			font-family: 'Source Sans Pro', sans-serif;
+		}
+		
+		.point {
+			r: 5;
+		}
+		
+		.chart-label {
+			font-size: 8px;
+			font-weight: bold;
+		}
+		
+	</style>
+</head>
+<body>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	
+	<h1>Visualization of Victims of Selected Major Offences in Singapore </br> (21 years and above only, 2011 - 2019)</h1>
+	<h3>Hint: Hover over chart for number of cases of each offence per year</h3>
+	<svg id="stackedAreaAbove21" viewBox="0 0 960 380"></svg>
+	<h2> Observations </h2>
+	<p> Of the 10 major offences, the 'Cheating and Related' category clearly constitutes the majority of cases, followed by 'Outrage of Modesty',
+	and 'Serious Hurt'. On the other hand, 'Murder', 'Snatch Theft', 'Theft of Motor Vehicles' and 'Rape' happen the least over the years. </p>
+	<p>  Overall, there is an rising trend of total persons arrested between 2011 and 2019, with the total number peaking at 2018, before falling slightly in 2019.
+	On closer inspection, the total persons arrested for the top two offences, 'Cheating and Related' and 'Outrage of Modesty' have been increasing
+	in general, contributing to the overall rising trend. From the chart, worringly, it can also be seen that total persons arrested for 'Rape' (dark purple) has
+	also jumped significantly in the last 3 years.</p>
+	
+	<script>
+		let margin = {top: 20, right: 150, bottom: 40, left: 150},
+			width = 960 - margin.left - margin.right,
+			height = 380 - margin.top - margin.bottom;
+				
+		let svg = d3.select("#stackedAreaAbove21")
+			.append("g")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+			.append("g")
+				.attr("transform","translate(" + margin.left + "," + margin.top + ")");
+	
+		d3.csv("total-person-arrested-above21-wide.csv", data => {
+
+			// List of groups = header of the csv file
+			let keys = data.columns.slice(1)
+			
+			//stack the data?
+			let stackedData = d3.stack()
+				.keys(keys)
+				(data)
+			//console.log("This is the stack result: ", stackedData)
+			
+			// Add X axis
+			let x = d3.scaleLinear()
+				.domain(d3.extent(data, function(d) { return d.year; }))
+				.range([ 0, width ]);
+			svg.append("g")
+				.attr("class", "axis-marks")
+				.attr("transform", "translate(0," + height + ")")
+				.call(d3.axisBottom(x).ticks(9));
+			svg.append("text")    
+				.attr("class", "axis-label")
+				.attr("transform",
+							"translate(" + (width/2) + " ," + (height + margin.top + 20) + ")")
+				.text("Year");
+
+			// Add Y axis
+			let y = d3.scaleLinear()
+				.domain([0, 4500])
+				.range([ height, 0 ]);
+			svg.append("g")
+				.attr("class", "axis-marks")
+				.call(d3.axisLeft(y));
+			svg.append("text")
+				.attr("class", "axis-label")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 0 - margin.left / 3)
+				.attr("x",0 - (height / 2))
+				.text("Total Persons Arrested (21 years & above)"); 
+
+			// color palette
+			let color = d3.scaleOrdinal()
+				.domain(keys)
+				.range(['#d66363', '#de8c49', '#decf49', '#7dde49', '#49dec3', '#49b6de', '#8273de', '#b289d9', '#e69eda', '#bd8c6f'])
+			
+			// Show the areas
+			svg
+				.selectAll("mylayers")
+				.data(stackedData)
+				.enter()
+				.append("path")
+					.style("fill", function(d) { console.log(d.key) ; return color(d.key); })
+					.attr("d", d3.area()
+						.x(function(d, i) { return x(d.data.year); })
+						.y0(function(d) { return y(d[0]); })
+						.y1(function(d) { return y(d[1]); })
+					)
+			
+			// Create an svg object for each major offence's label
+			let focus = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus2 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus3 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus4 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus5 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus6 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus7 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus8 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus9 = svg.append("g").attr("class", "focus").style("display", "none"),
+				focus10 = svg.append("g").attr("class", "focus").style("display", "none");
+
+			focus.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#ad4c49');
+
+			focus.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("dy", ".35em");
+				
+			focus2.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#ff7f00');
+
+			focus2.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("dy", ".35em");
+			
+			focus3.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#ffff33');
+
+			focus3.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("dy", ".35em");
+				
+			focus4.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#4daf4a');
+
+			focus4.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("dy", ".35em");
+				
+			focus5.append("circle")
+				.attr("class", "point")
+				.attr("fill",'#3ab09b');
+
+			focus5.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("dy", ".35em");
+				
+			focus6.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#3384a1');
+
+			focus6.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("dy", ".35em");
+			
+			focus7.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#5b519c');
+
+			focus7.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("y", -5)
+				.attr("dy", ".35em");
+				
+			focus8.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#906fb0');
+
+			focus8.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("y", -8)
+				.attr("dy", ".35em");
+				
+			focus9.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#c487ba');
+				
+			focus9.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("y", -11)
+				.attr("dy", ".35em");
+				
+			focus10.append("circle")
+				.attr("class", "point")
+				.attr("fill", '#a65628');
+
+			focus10.append("text")
+				.attr("class", "chart-label")
+				.attr("x", 9)
+				.attr("y", -16)
+				.attr("dy", ".35em");
+				
+			svg
+				.on("mouseover", function() {
+					focus.style("display", null);
+					focus2.style("display", null);
+					focus3.style("display", null);
+					focus4.style("display", null);
+					focus5.style("display", null);
+					focus6.style("display", null);
+					focus7.style("display", null);
+					focus8.style("display", null);
+					focus9.style("display", null);
+					focus10.style("display", null);
+				})
+				.on("mouseout", function() {
+					focus.style("display", "none");
+					focus2.style("display", "none");
+					focus3.style("display", "none");
+					focus4.style("display", "none");
+					focus5.style("display", "none");
+					focus6.style("display", "none");
+					focus7.style("display", "none");
+					focus8.style("display", "none");
+					focus9.style("display", "none");
+					focus10.style("display", "none");
+				})
+				.on("mousemove", mousemove);
+					
+			function mousemove() {
+				let mouse_x = d3.mouse(this)[0];
+				let mouseYear = x.invert(mouse_x);
+				let bisectYear = d3.bisector(function(d) { return d.year; }).left;
+				let i = bisectYear(data, mouseYear,1),
+					d0 = data[i - 1],
+					d1 = data[i],
+					d = mouseYear - d0.year > d1.year - mouseYear ? d1 : d0;
+				
+				let values = [];
+				let sum = [];
+				for (let i = 0; i < 10; i++) {
+					let offence = keys[i];
+					values[i] = parseInt(d[offence]);
+					if(i == 0) {
+						sum[i] = values[i];
+					} else {
+						sum[i] = sum[i-1] + values[i];
+					}
+				}
+				
+				/*
+				let val1 = parseInt(d['Total Persons Arrested For Cheating & Related']);
+				let val2 = parseInt(d['Total Persons Arrested For Outrage Of Modesty']);
+				let val3 = parseInt(d['Total Persons Arrested For Serious Hurt']);
+				let val4 = parseInt(d['Total Persons Arrested For Rioting']);
+				let val5 = parseInt(d['Total Persons Arrested For Housebreaking']);
+				let val6 = parseInt(d['Total Persons Arrested For Robbery']);
+				let val7 = parseInt(d['Total Persons Arrested For Rape']);
+				let val8 = parseInt(d['Total Persons Arrested For Theft Of Motor Vehicle']);
+				let val9 = parseInt(d['Total Persons Arrested For Snatch Theft']);
+				let val10 = parseInt(d['Total Persons Arrested For Murder']);
+			
+				let sum2 = val1+ val2,
+					sum3 = val1+val2+val3,
+					sum4 = val1+val2+val3+val4,
+					sum5 = val1+val2+val3+val4+val5,
+					sum6 = val1+val2+val3+val4+val5+val6,
+					sum7 = val1+val2+val3+val4+val5+val6+val7,
+					sum8 = val1+val2+val3+val4+val5+val6+val7+val8,
+					sum9 = val1+val2+val3+val4+val5+val6+val7+val8+val9,
+					sum10 = val1+val2+val3+val4+val5+val6+val7+val8+val9+val10;*/
+					
+				focus.attr("transform", "translate(" + x(d.year) + "," + y(sum[0]) + ")");
+				focus2.attr("transform", "translate(" + x(d.year) + "," + y(sum[1]) + ")");
+				focus3.attr("transform", "translate(" + x(d.year) + "," + y(sum[2]) + ")");
+				focus4.attr("transform", "translate(" + x(d.year) + "," + y(sum[3]) + ")");
+				focus5.attr("transform", "translate(" + x(d.year) + "," + y(sum[4]) + ")");
+				focus6.attr("transform", "translate(" + x(d.year) + "," + y(sum[5]) + ")");
+				focus7.attr("transform", "translate(" + x(d.year) + "," + y(sum[6]) + ")");
+				focus8.attr("transform", "translate(" + x(d.year) + "," + y(sum[7]) + ")");
+				focus9.attr("transform", "translate(" + x(d.year) + "," + y(sum[8]) + ")");
+				focus10.attr("transform", "translate(" + x(d.year) + "," + y(sum[9]) + ")");		
+				
+				focus.select("text").text(keys[0].replace("Total Persons Arrested For ", "") + ": " + values[0]);
+				focus2.select("text").text(keys[1].replace("Total Persons Arrested For ", "") + ": " + values[1]);
+				focus3.select("text").text(keys[2].replace("Total Persons Arrested For ", "") + ": " + values[2]);
+				focus4.select("text").text(keys[3].replace("Total Persons Arrested For ", "") + ": " + values[3]);
+				focus5.select("text").text(keys[4].replace("Total Persons Arrested For ", "") + ": " + values[4]);
+				focus6.select("text").text(keys[5].replace("Total Persons Arrested For ", "") + ": " + values[5]);
+				focus7.select("text").text(keys[6].replace("Total Persons Arrested For ", "") + ": " + values[6]);
+				focus8.select("text").text(keys[7].replace("Total Persons Arrested For ", "") + ": " + values[7]);
+				focus9.select("text").text(keys[8].replace("Total Persons Arrested For ", "") + ": " + values[8]);
+				focus10.select("text").text(keys[9].replace("Total Persons Arrested For ", "") + ": " + values[9]);
+			}
+			
+		});
+	</script>
+</body>
+</html>
