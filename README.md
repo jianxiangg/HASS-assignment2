@@ -12,3 +12,4 @@ Visualization
 
 1. Stacked area chart was chosen to display the total persons arrested per offence across the years. Only data of the "21 years and above" group was visualized.
 2. A tooltip to simultaneously display all values per year (depending on cursor hover) was created.
+3. Some observations from the chart was then described.
