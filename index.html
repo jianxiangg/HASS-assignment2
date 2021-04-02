@@ -90,11 +90,10 @@
 			// List of groups = header of the csv file
 			let keys = data.columns.slice(1)
 			
-			//stack the data?
+			//stack the data
 			let stackedData = d3.stack()
 				.keys(keys)
 				(data)
-			//console.log("This is the stack result: ", stackedData)
 			
 			// Add X axis
 			let x = d3.scaleLinear()
@@ -153,7 +152,7 @@
 				focus8 = svg.append("g").attr("class", "focus").style("display", "none"),
 				focus9 = svg.append("g").attr("class", "focus").style("display", "none"),
 				focus10 = svg.append("g").attr("class", "focus").style("display", "none");
-
+		
 			focus.append("circle")
 				.attr("class", "point")
 				.attr("fill", '#ad4c49');
@@ -339,6 +338,7 @@
 				focus8.select("text").text(keys[7].replace("Total Persons Arrested For ", "") + ": " + values[7]);
 				focus9.select("text").text(keys[8].replace("Total Persons Arrested For ", "") + ": " + values[8]);
 				focus10.select("text").text(keys[9].replace("Total Persons Arrested For ", "") + ": " + values[9]);
+					
 			}
 			
 		});
